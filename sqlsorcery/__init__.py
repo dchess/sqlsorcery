@@ -215,7 +215,7 @@ class BigQuery(Connection):
     """Child class that inherits from Connection with specific configuartion
         for connecting to Google BigQuery."""
 
-    def __init__(self, dataset=None, creds=None):
+    def __init__(self, dataset=None, creds=None, project_id=None):
         """Initializes a BigQuery database connection
 
         .. note::
@@ -228,9 +228,16 @@ class BigQuery(Connection):
         :type dataset: string
         :param creds: Filepath to service account credentials json file
         :type creds: string
+        :param project_id: Google BigQuery project id
+        :type project_id: string
         """
         self.creds = getenv("BQ_CREDS") or creds
-        self.schema = getenv("BQ_DATASET") or dataset
+        self.dataset = getenv("BQ_DATASET") or dataset
+        if getenv("BQ_CREDS"):
+            with open(self.cred) as f:
+                self.project_id = json.load(f)["project_id"]
+        else:
+            self.project_id = getenv("BQ_PROJECT_ID") or project_id
 
     def query(self, sql_query):
         """Executes the given sql query
@@ -241,7 +248,12 @@ class BigQuery(Connection):
         :return: Resulting dataset from query
         :rtype: `Pandas.DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_
         """
-        df = pd.read_gbq(sql_query, progress_bar_type=None, credentials=self.creds)
+        df = pd.read_gbq(
+            sql_query,
+            progress_bar_type=None,
+            credentials=self.creds,
+            project_id=self.project_id,
+        )
         return df
 
     def query_from_file(self, filename):
@@ -254,7 +266,12 @@ class BigQuery(Connection):
         :rtype: `Pandas.DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_
         """
         sql_statement = self._read_sql_file(filename)
-        df = pd.read_gbq(sql_statement, progress_bar_type=None, credentials=self.creds)
+        df = pd.read_gbq(
+            sql_statement,
+            progress_bar_type=None,
+            credentials=self.creds,
+            project_id=self.project_id,
+        )
         return df
 
     def insert_into(self, table, df, if_exists="append", chunksize=None):
@@ -273,7 +290,13 @@ class BigQuery(Connection):
 
         :return: None
         """
-        df.to_gbq(table, if_exists=if_exists, chunksize=chunksize, progress_bar=False)
+        df.to_gbq(
+            table,
+            if_exists=if_exists,
+            chunksize=chunksize,
+            progress_bar=False,
+            project_id=self.project_id,
+        )
 
 
 class MSSQL(Connection):
