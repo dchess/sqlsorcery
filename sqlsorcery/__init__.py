@@ -273,13 +273,7 @@ class BigQuery(Connection):
 
         :return: None
         """
-        df.to_gbq(
-            table,
-            if_exists=if_exists,
-            index=False,
-            chunksize=chunksize,
-            progress_bar=False,
-        )
+        df.to_gbq(table, if_exists=if_exists, chunksize=chunksize, progress_bar=False)
 
 
 class MSSQL(Connection):
