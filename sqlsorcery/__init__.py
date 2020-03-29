@@ -5,6 +5,7 @@
 .. moduleauthor:: DC Hess <dc.hess@gmail.com>
 """
 
+import json
 from os import getenv
 import sqlite3
 import urllib
@@ -234,7 +235,7 @@ class BigQuery(Connection):
         self.creds = getenv("BQ_CREDS") or creds
         self.dataset = getenv("BQ_DATASET") or dataset
         if getenv("BQ_CREDS"):
-            with open(self.cred) as f:
+            with open(self.creds) as f:
                 self.project_id = json.load(f)["project_id"]
         else:
             self.project_id = getenv("BQ_PROJECT_ID") or project_id
